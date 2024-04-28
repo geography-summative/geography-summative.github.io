@@ -6,7 +6,7 @@
 
 
      <!-- Instalise Leaflet Map Header -->
-     <title>Leaflet Map Example</title>
+     <title>Californian Checkerboard Effects</title>
 
      
      <!--  <script text="text/javascript" src="https://code.jquery.com/jquery-2.1.3.min.js"></script>-->
@@ -52,7 +52,6 @@
         /* Fixed background   */
         .background {
              /*
-            background-image: url('https://www.politico.com/dims4/default/a806a4e/2147483647/strip/true/crop/1000x665+0+0/resize/630x419!/quality/90/?url=https%3A%2F%2Fstatic.politico.com%2Fb4%2Fda%2F831e51ff4441a77761c7fe80c0cc%2Fimage.png');
            
             background-size: cover;
             background-position: center;
@@ -238,7 +237,6 @@ border: 1px solid rgba( 255, 255, 255, 0.18 );
         <div class="scroll-trigger" data-lat="35.212" data-lng="-98.351" data-zm="5"> </div>
 
         
-        <div class="scroll-MAPREMOVE"> </div>
         <div class="gap-div"></div>
 
         <div class="scroll-MAPSHOWRAIL"> </div>
@@ -266,6 +264,7 @@ border: 1px solid rgba( 255, 255, 255, 0.18 );
 
         <div class="chapter-box" style="text-align: center;"> 
             <div class="scroll-Removeall"> </div>
+            <div class="scroll-trigger" data-lat="40.106" data-lng="-130.414" data-zm="6"></div>
             <p style="top: 50%; font-size: 2em;"> Part 2: <b>Concequences of Checkerboarding</b></p>
         </div>
 
@@ -312,15 +311,11 @@ border: 1px solid rgba( 255, 255, 255, 0.18 );
             const fullscreenButton = document.querySelector('.fullscreen-button');
 
             if (!document.fullscreenElement) {
-                //background.style.width = '100vw';
-                //background.style.height = '100vh';
-                //infoContainer.style.marginTop = '100vh';
+    
                 fullscreenButton.textContent = 'Exit Full Screen';
                 document.documentElement.requestFullscreen();
             } else {
-                //background.style.width = '100%';
-                //background.style.height = '100vh';
-                //infoContainer.style.marginTop = '100vh';
+
                 fullscreenButton.textContent = 'Full Screen';
                 document.exitFullscreen();
             }
@@ -341,30 +336,10 @@ border: 1px solid rgba( 255, 255, 255, 0.18 );
              attribution: '© OpenStreetMap contributors'
 
          }).addTo(map);
-         
-
-      
-         // Add Esri Satellite Imagery as a basemap
+       
          L.esri.basemapLayer('Imagery').addTo(map);
 
-       //  var imageUrl = 'C:/Users/lewis/Downloads/7693679.jpg',
-          //   imageBounds = L.latLngBounds([[37.8475104, -122.3301187], [37.6985822, -122.5242901]]);
-
-      //  var imageOverlay = L.imageOverlay(imageUrl, imageBounds).addTo(map);
-       // alert("trigger")
-
-        
-
  
-         // Add a marker
-        // L.marker([51.505, -0.09]).addTo(map)
-        //   .bindPopup('Hello, this is a Leaflet map!').openPopup();
-
-       // const RandomImageLayer = L.esri.imageMapLayer({
-        //  url: "https://landsat.arcgis.com/arcgis/rest/services/Landsat/PS/ImageServer",
-         // attribution: "United States Geological Survey (USGS), National Aeronautics and Space Administration (NASA)"}).addTo(map);
-       // map.removeLayer(RandomImageLayer)
-         
        function showRail() {
         loadImage2()
     }
@@ -468,17 +443,7 @@ targetdivsRemoveall.forEach(function(targetdivsRemoveall) {
             removeall();
         }
 });
-        targetdivsMAPREMOVE.forEach(function(targetdivsMAPREMOVE) {
-        if (isVerticallyCentered(targetdivsMAPREMOVE)) {
-             map.removeLayer(imageOverlay);
-             map.removeLayer(imageOverlay);
-             map.removeLayer(imageOverlay);
-             map.removeLayer(imageOverlay);}
-             map.removeLayer(imageOverlay);
-             map.removeLayer(imageOverlay);
-
-        }
-    );
+       
 
     
    
