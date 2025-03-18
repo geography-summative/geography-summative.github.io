@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Processing Time Display</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+ <script type="text/javascript" src="bva_data.js"></script>
+    <style>
+        body {
+
+            font-family: Arial, sans-serif;
+            display: block;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f9f9f9;
+
+            margin: 0;
+            padding: 0;
+            scroll-behavior: smooth;
+        }
+   
+        select {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .box-container {
+            display: flex;
+            align-items: center;
+            padding: 5px;
+        }
+        .label {
+            font-size: 22px;
+            font-weight: bold;
+            flex: 1;
+            text-align: left;
+        }
+        .box {
+            background: #fff;
+            color: #333;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            font-size: 22px;
+            font-weight: bold;
+            flex: 0 0 40%;
+            text-align: center;
+        }
+
+
+canvas {
+             width: 100% !important;
+            height: auto !important;
+            max-width: 600px;
+            margin: auto;
+        }
+
+    </style>
+
+
+ <style>
+
+	button {
+  background: none!important;
+  border: none;
+  padding: 0!important;
+
+	padding: 10px;
+            text-decoration: none;
+            color:  #afafac;
+            transition: transform 0.3s ease-in-out, color 0.3s ease-in-out;
+            font-size: 18px;
+}
+
+        .nav {
+            position: fixed;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 150px;
+        }
+        .nav a {
+            display: block;
+            padding: 10px;
+            text-decoration: none;
+            color:  #afafac;
+            transition: transform 0.3s ease-in-out, color 0.3s ease-in-out;
+            font-size: 18px;
+           /* font-weight: 400; */
+        }
+        .nav a:hover {
+             /*transform: scale(1.1);*/
+          color: #007BFF;
+        }
+        .nav a.active {
+            color: #007BFF;
+            text-decoration: underline;
+            /*transform: scale(1.1);*/
+             /* font-weight: 700; */
+        }
+        .content {
+            margin-left: 10%;
+            padding: 20px;
+            width: 80%;
+            text-align: center;
+        }
+        .section {
+           /*  height: 100vh;
+            background: grey;
+            margin-bottom: 50px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;*/
+
+text-align: center;
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    width: 80%;
+    margin: 10px auto; /* Adds spacing between containers */
+	margin-bottom: 50px;
+    display: block; /* Ensures containers stack vertically */
+
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+
+
+@media (max-width: 768px) {
+            .nav {
+                left: 10px;
+                width: auto;
+            }
+            .nav a {
+                writing-mode: vertical-rl;
+                transform: rotate(180deg);
+                padding: 30px;
+            }
+    </style>
+</head>
+<body>
+
+  <div class="nav">
+        <a href="#introduction">Introduction</a>
+        <a href="#calculate">Application time calculator</a>
+        <a href="#graph">Graphs</a>
+        <a href="#rawdata">Raw Data</a>
+    </div>
+    
+    <div class="content">
+
+<div  id="introduction" class="section">
+<h2> Introduction </h2>
+<p> this is an itnroduction text BVA blah blah </p>
+</div>
+
+    <div  id="calculate" class="section">
+        <h2>Select a Date</h2>
+<div class="box-container">
+<div style="width: 10%"></div>
+        <select id="dateSelector"></select>
+<div style="width: 10%"></div>
+</div>
+        <div class="box-container">
+            <div style="width: 10%"></div>
+            <span class="label">Total processing time:</span>
+            <div class="box" id="monthsBox">--</div>
+          <div style="width: 10%"></div>
+        </div>
+        <div class="box-container">
+          <div style="width: 10%"></div>
+            <span class="label">Completion date:</span>
+            <div class="box" id="nextDateBox">--</div>
+          <div style="width: 10%"></div>
+        </div>
+    </div>
+
+
+
+
+    <script>
+        
+        
+        const selector = document.getElementById("dateSelector");
+        const monthsBox = document.getElementById("monthsBox");
+        const nextDateBox = document.getElementById("nextDateBox");
+        
+        data.forEach(entry => {
+          if (entry.new_applications_allowed == "Y") {
+            let option = document.createElement("option");
+            option.value = entry.date;
+            option.textContent = entry.date;
+            selector.appendChild(option);
+            }
+        });
+        
+        function animateCount(element, start, end, duration, suffix = "") {
+            let startTime = null;
+            function step(timestamp) {
+                if (!startTime) startTime = timestamp;
+                let progress = Math.min((timestamp - startTime) / duration, 1);
+                element.textContent = Math.floor(progress * (end - start) + start) + suffix;
+                if (progress < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        }
+        
+        function animateDate(element, startDate, endDate, duration) {
+            let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            let [startMonth, startYear] = startDate.split(" ");
+            let [endMonth, endYear] = endDate.split(" ");
+            
+            let startIdx = months.indexOf(startMonth) + (parseInt(startYear) * 12);
+            let endIdx = months.indexOf(endMonth) + (parseInt(endYear) * 12);
+            
+            let startTime = null;
+            function step(timestamp) {
+                if (!startTime) startTime = timestamp;
+                let progress = Math.min((timestamp - startTime) / duration, 1);
+                let currentIdx = Math.floor(progress * (endIdx - startIdx) + startIdx);
+                let currentYear = Math.floor(currentIdx / 12);
+                let currentMonth = months[currentIdx % 12];
+                element.textContent = currentMonth + " " + currentYear;
+                if (progress < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        }
+        
+        selector.addEventListener("change", function() {
+            const selectedData = data.find(d => d.date === this.value);
+            animateCount(monthsBox, 0, selectedData.months_to_process, 1000, " Months");
+            animateDate(nextDateBox, selectedData.date, selectedData.nextDate, 1500);
+        });
+    </script>
+
+<div  id="graph" class="section">
+ <h2>Application Processing Over Time</h2>
+    <canvas id="applicationsChart"></canvas>
+    <canvas id="totalRemainingChart"></canvas>
+    <canvas id="totalMonthsChart"></canvas>
+    <button id="togglebutton" onclick="toggleData()">Toggle Data</button>
+
+</div>
+
+    <script>
+        const rawData = data
+
+        let showAllData = false;
+
+        function filterData(showAll) {
+            return rawData.filter(entry => showAll || entry.data_type === "historical");
+        }
+
+        function updateCharts(showAll) {
+            const filteredData = filterData(showAll);
+            
+            applicationsChart.data.labels = filteredData.map(entry => entry.date);
+            applicationsChart.data.datasets[0].data = filteredData.map(entry => entry.total_placed);
+            applicationsChart.data.datasets[1].data = filteredData.map(entry => entry.total_processed);
+            applicationsChart.update();
+            
+            totalRemainingChart.data.labels = filteredData.map(entry => entry.date);
+            totalRemainingChart.data.datasets[0].data = filteredData.map(entry => entry.total_remaining);
+            totalRemainingChart.update();
+            
+            totalMonthsChart.data.labels = filteredData.map(entry => entry.date);
+            totalMonthsChart.data.datasets[0].data = filteredData.map(entry => entry.months_to_process);
+            totalMonthsChart.update();
+        }
+
+        
+
+ const ctx1 = document.getElementById("applicationsChart").getContext("2d");
+        const ctx2 = document.getElementById("totalRemainingChart").getContext("2d");
+        const ctx3 = document.getElementById("totalMonthsChart").getContext("2d");
+
+        const applicationsChart = new Chart(ctx1, {
+            type: "line",
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: "Total Placed",
+                        data: [],
+                        borderColor: "blue",
+                        borderWidth: 2,
+                        fill: false
+                    },
+                    {
+                        label: "Total Processed",
+                        data: [],
+                        borderColor: "green",
+                        borderWidth: 2,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            afterBody: (tooltipItems) => {
+                                let index = tooltipItems[0].dataIndex;
+                                return ["New Applications Allowed: " + rawData[index].new_applications_allowed], ["Data Type: " + rawData[index].data_type], ["Applications Remaining:" + rawData[index].total_remaining];
+                            }
+                        }
+                    }
+                }
+            }
+        });
+                              
+   const totalRemainingChart = new Chart(ctx2, {
+            type: "line",
+            data: {
+                labels: [],
+                datasets: [{
+                    label: "Total Backlog",
+                    data: [],
+                    borderColor: "blue",
+                    borderWidth: 2,
+                    fill: false
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        const totalMonthsChart = new Chart(ctx3, {
+            type: "line",
+            data: {
+                labels: [],
+                datasets: [{
+                    label: "Months taken for application entered at this time",
+                    data: [],
+                    borderColor: "green",
+                    borderWidth: 2,
+                    fill: false
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        updateCharts(showAllData);
+	
+
+	var ShowPredictedDataToggle = "True";
+	const buttony = document.getElementById("togglebutton");
+
+        function toggleData() {
+
+		if (ShowPredictedDataToggle == "True") {
+		buttony.classList.remove("active");
+		ShowPredictedDataToggle = False;
+		};
+
+		if (ShowPredictedDataToggle == "False") {
+		buttony.classList.add("active");
+		ShowPredictedDataToggle = True;
+		};
+
+            	showAllData = !showAllData;
+            updateCharts(showAllData);
+        }
+    </script>
+
+  <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const links = document.querySelectorAll(".nav a");
+            const sections = document.querySelectorAll(".section");
+            let scrollingByClick = false;
+
+            links.forEach(link => {
+                link.addEventListener("click", function(event) {
+                    scrollingByClick = true;
+                    links.forEach(l => l.classList.remove("active"));
+                    this.classList.add("active");
+                    setTimeout(() => scrollingByClick = false, 1000); // Delay reset
+                });
+            });
+
+            function updateActiveLink() {
+                if (scrollingByClick) return;
+                let index = sections.length;
+                while (--index && window.scrollY + 50 < sections[index].offsetTop) {}
+                links.forEach(link => link.classList.remove("active"));
+                links[index].classList.add("active");
+            }
+
+            window.addEventListener("scroll", updateActiveLink);
+        });
+    </script>
+
+<div  id="rawdata" class="section">
+<h2> Raw Data </h2>
+<p> Here zou can find the raw data t BVA blah blah </p>
+</div>
+
+
+ </div>
+</body>
+</html>
