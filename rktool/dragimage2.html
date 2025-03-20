@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Arranger</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.1/jspdf.umd.min.js"></script>
+    
+    <style>
+
+        .image-title {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 4px;
+    font-size: 14px;
+    color: #333;
+}
+
+
+        .a4-sheet {
+            width: 210mm;
+            height: 297mm;
+            background-color: white;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+            margin: 20px auto;
+        }
+
+        .image-container {
+            position: absolute;
+            cursor: grab;
+            border: 1px solid #ccc;
+            padding: 4px;
+            background-color: white;
+            border-radius: 0.5rem;
+        }
+        .image-container:active {
+            cursor: grabbing;
+        }
+
+        .resize-handle {
+            width: 10px;
+            height: 10px;
+            background: blue;
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            cursor: se-resize;
+        }
+        
+        .remove-button {
+            position: absolute;
+            top: 0;
+            right: 0;
+            cursor: pointer;
+            background: red;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .carousel {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 200px;
+            overflow-y: auto;
+            background-color: white;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .carousel-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            background-color: #f9fafb;
+            cursor: grab;
+        }
+
+        .container {
+            margin-left: 220px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    
+    <!-- Carousel -->
+    <div class="carousel">
+        <div class="carousel-item" draggable="true" data-src="image1.png" data-title="Image 1">
+            <img src="image1.png" alt="Image 1" width="100">
+            <p>Image 1</p>
+        </div>
+        <div class="carousel-item" draggable="true" data-src="image2.png" data-title="Image 2">
+            <img src="image2.png" alt="Image 2" width="100">
+            <p>Image 2</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mx-auto p-4">
+        <button id="add-page" class="bg-blue-500 text-white px-4 py-2 rounded shadow mb-4">Add New Page</button>
+        <button id="export-sheets" class="bg-green-500 text-white px-4 py-2 rounded shadow mb-4">Export Sheets</button>
+        
+        <div id="a4-sheets">
+            <div class="a4-sheet" ondragover="allowDrop(event)" ondrop="drop(event)">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('add-page').addEventListener('click', () => {
+            const newPage = document.createElement('div');
+            newPage.className = 'a4-sheet';
+            newPage.setAttribute('ondragover', 'allowDrop(event)');
+            newPage.setAttribute('ondrop', 'drop(event)');
+            document.getElementById('a4-sheets').appendChild(newPage);
+        });
+
+        document.querySelectorAll('.carousel-item').forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                const src = item.getAttribute('data-src');
+                const titley = item.getAttribute('data-title');
+                e.dataTransfer.setData('text/plain', JSON.stringify({ src, titley }));
+            });
+        });
+
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        function drop(event) {
+            event.preventDefault();
+            const data = JSON.parse(event.dataTransfer.getData('text/plain'));
+            const { src, titley } = data;
+            const sheet = event.currentTarget;
+
+            const imgContainer = document.createElement('div');
+            imgContainer.className = 'image-container';
+            imgContainer.style.left = event.offsetX + 'px';
+            imgContainer.style.top = event.offsetY + 'px';
+
+             // Create title element
+        const title = document.createElement('p');
+        title.className = 'image-title';
+        title.textContent = titley; // Change this dynamically if needed
+
+            const img = document.createElement('img');
+            img.src = src;
+            img.style.width = '100px';
+            img.style.height = 'auto';
+            img.draggable = false; // Disable default drag behavior
+
+            const removeButton = document.createElement('div');
+            removeButton.className = 'remove-button';
+            removeButton.textContent = '×';
+            removeButton.onclick = () => imgContainer.remove();
+
+            const resizeHandle = document.createElement('div');
+            resizeHandle.className = 'resize-handle';
+
+            imgContainer.appendChild(title);
+            imgContainer.appendChild(img);
+            imgContainer.appendChild(removeButton);
+            imgContainer.appendChild(resizeHandle);
+            sheet.appendChild(imgContainer);
+
+            let isResizing = false;
+            let startX, startY, startWidth, startHeight, aspectRatio;
+
+            resizeHandle.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                isResizing = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startWidth = img.clientWidth;
+                startHeight = img.clientHeight;
+                aspectRatio = startWidth / startHeight;
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (isResizing) {
+                    const deltaX = e.clientX - startX;
+                    const newWidth = startWidth + deltaX;
+                    const newHeight = newWidth / aspectRatio;
+
+                    img.style.width = `${newWidth}px`;
+                    img.style.height = `${newHeight}px`;
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isResizing = false;
+            });
+
+            imgContainer.addEventListener('mousedown', (e) => {
+                if (e.target === resizeHandle) return;
+                let startX = e.clientX - imgContainer.offsetLeft;
+                let startY = e.clientY - imgContainer.offsetTop;
+
+                function move(e) {
+                    imgContainer.style.left = e.clientX - startX + 'px';
+                    imgContainer.style.top = e.clientY - startY + 'px';
+                }
+
+                document.addEventListener('mousemove', move);
+                document.addEventListener('mouseup', () => {
+                    document.removeEventListener('mousemove', move);
+                }, { once: true });
+            });
+        }
+
+
+function exportPages() {
+    const sheets = document.querySelectorAll('.a4-sheet');
+    const pdf = new jsPDF('p', 'mm', 'a4'); // Create a new PDF
+
+    sheets.forEach((sheet, index) => {
+        const hasItems = sheet.querySelectorAll('.image-container').length > 0;
+
+        if (hasItems) {
+            html2canvas(sheet).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const imgWidth = 210; // A4 width in mm
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                if (index > 0) {
+                    pdf.addPage(); // Add a new page for additional sheets
+                }
+
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+            });
+        } else {
+            console.log(`Skipping page ${index + 1} (no items)`);
+        }
+    });
+
+    // Save the PDF after processing all sheets
+    pdf.save('exported-pages.pdf');
+}
+
+        document.getElementById('export-sheets').addEventListener('click', () => {
+            exportPages()
+           
+        });
+
+    </script>
+</body>
+</html>
