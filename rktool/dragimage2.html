@@ -6,8 +6,8 @@
     <title>Image Arranger</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.1/jspdf.umd.min.js"></script>
-    
+
+
     <style>
 
         .image-title {
@@ -227,30 +227,39 @@
 
 function exportPages() {
     const sheets = document.querySelectorAll('.a4-sheet');
-    const pdf = new jsPDF('p', 'mm', 'a4'); // Create a new PDF
 
     sheets.forEach((sheet, index) => {
         const hasItems = sheet.querySelectorAll('.image-container').length > 0;
 
         if (hasItems) {
+            // Hide remove and resize buttons
+            const buttons = sheet.querySelectorAll('.remove-button, .resize-handle');
+            buttons.forEach(button => {
+                button.style.display = 'none';
+            });
+
+            // Use html2canvas to capture the sheet as an image
             html2canvas(sheet).then(canvas => {
+                // Convert the canvas to a data URL
                 const imgData = canvas.toDataURL('image/png');
-                const imgWidth = 210; // A4 width in mm
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-                if (index > 0) {
-                    pdf.addPage(); // Add a new page for additional sheets
-                }
+                // Create a temporary link to download the image
+                const link = document.createElement('a');
+                link.href = imgData;
+                link.download = `page-${index + 1}.png`; // Name of the downloaded file
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
 
-                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                // Restore remove and resize buttons after export
+                buttons.forEach(button => {
+                    button.style.display = 'block'; // Or the original display value
+                });
             });
         } else {
             console.log(`Skipping page ${index + 1} (no items)`);
         }
     });
-
-    // Save the PDF after processing all sheets
-    pdf.save('exported-pages.pdf');
 }
 
         document.getElementById('export-sheets').addEventListener('click', () => {
