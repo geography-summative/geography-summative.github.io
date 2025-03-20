@@ -135,64 +135,35 @@
 
     <script>
 
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const carouselItems = document.querySelectorAll('.carousel-item');
-            const a4Sheets = document.getElementById('a4-sheets');
-            const addPageButton = document.getElementById('add-page');
-
-            let currentSheet = a4Sheets.firstElementChild;
-
-            // Add new page
-            addPageButton.addEventListener('click', () => {
-                const newSheet = document.createElement('div');
-                newSheet.className = 'a4-sheet';
-                a4Sheets.appendChild(newSheet);
-                currentSheet = newSheet;
-            });
-
-            // Drag and drop images from carousel to A4 sheet
-            carouselItems.forEach(item => {
-                item.addEventListener('dragstart', (e) => {
-                    const src = item.getAttribute('data-src');
-                    const title = item.getAttribute('data-title');
-                    e.dataTransfer.setData('text/plain', JSON.stringify({ src, title }));
-                });
-            });
-
-            currentSheet.addEventListener('dragover', (e) => {
-                e.preventDefault();
-            });
-
-            function hideCarouselImage(src) {
-    // Select all carousel items
+document.addEventListener('DOMContentLoaded', () => {
     const carouselItems = document.querySelectorAll('.carousel-item');
+    const a4Sheets = document.getElementById('a4-sheets');
+    const addPageButton = document.getElementById('add-page');
 
-    // Loop through each carousel item
-    carouselItems.forEach(item => {
-        // Check if the item's data-src matches the provided src
-        if (item.getAttribute('data-src') === src) {
-            // Hide the carousel item
-            item.style.display = 'none';
-        }
+    let currentSheet = a4Sheets.firstElementChild;
+
+    // Add new page
+    addPageButton.addEventListener('click', () => {
+        const newSheet = document.createElement('div');
+        newSheet.className = 'a4-sheet';
+        a4Sheets.appendChild(newSheet);
+        currentSheet = newSheet;
     });
-}
 
-function showCarouselImage(src) {
-    // Select all carousel items
-    const carouselItems = document.querySelectorAll('.carousel-item');
-
-    // Loop through each carousel item
+    // Drag and drop images from carousel to A4 sheet
     carouselItems.forEach(item => {
-        // Check if the item's data-src matches the provided src
-        if (item.getAttribute('data-src') === src) {
-            // Hide the carousel item
-            item.style.display = 'flex';
-        }
+        item.addEventListener('dragstart', (e) => {
+            const src = item.getAttribute('data-src');
+            const title = item.getAttribute('data-title');
+            e.dataTransfer.setData('text/plain', JSON.stringify({ src, title }));
+        });
     });
-}
 
-            currentSheet.addEventListener('drop', (e) => {
+    currentSheet.addEventListener('dragover', (e) => {
+        e.preventDefault();
+    });
+
+currentSheet.addEventListener('drop', (e) => {
     e.preventDefault();
     const data = JSON.parse(e.dataTransfer.getData('text/plain'));
     const { src, title } = data;
@@ -212,6 +183,33 @@ function showCarouselImage(src) {
     const image = document.createElement('img');
     image.src = src;
     image.className = 'w-full h-full object-cover';
+    image.draggable = false; // Disable default drag behavior
+
+    // Wait for the image to load to get its natural dimensions
+    image.onload = () => {
+        const sheetWidth = currentSheet.offsetWidth; // Width of the A4 sheet
+        const maxWidth = (2 / 3) * sheetWidth; // Max width is 2/3 of the sheet width
+
+        // Calculate the aspect ratio of the image
+        const aspectRatio = image.naturalWidth / image.naturalHeight;
+
+        // Set the initial width and height
+        let initialWidth = Math.min(maxWidth, image.naturalWidth); // Avoid upscaling
+        let initialHeight = initialWidth / aspectRatio;
+
+        // Apply the initial dimensions to the image
+        image.style.width = `${initialWidth}px`;
+        image.style.height = `${initialHeight}px`;
+
+        // Calculate the total height of the container (image + title + padding)
+        const titleHeight = imageTitle.offsetHeight; // Height of the title
+        const padding = 16; // Total padding (0.5rem top + 0.5rem bottom = 16px)
+        const totalHeight = initialHeight + titleHeight + padding;
+
+        // Apply the total height to the container
+        imageContainer.style.width = `${initialWidth}px`;
+        imageContainer.style.height = `${totalHeight}px`;
+    };
 
     const resizeHandle = document.createElement('div');
     resizeHandle.className = 'resize-handle';
@@ -233,52 +231,99 @@ function showCarouselImage(src) {
     imageContainer.appendChild(removeButton);
     currentSheet.appendChild(imageContainer);
 
-                // Make image draggable
-                let isDragging = false;
-                let offsetX, offsetY;
+    // Make image draggable
+    let isDragging = false;
+    let startX, startY;
 
-                imageContainer.addEventListener('mousedown', (e) => {
-                    isDragging = true;
-                    offsetX = e.offsetX;
-                    offsetY = e.offsetY;
-                });
+    imageContainer.addEventListener('mousedown', (e) => {
+        if (e.target === resizeHandle) return; // Ignore resize handle clicks
+        isDragging = true;
+        startX = e.clientX - parseFloat(imageContainer.style.left || 0);
+        startY = e.clientY - parseFloat(imageContainer.style.top || 0);
+    });
 
-                document.addEventListener('mousemove', (e) => {
-                    if (isDragging) {
-                        imageContainer.style.left = `${e.clientX - offsetX}px`;
-                        imageContainer.style.top = `${e.clientY - offsetY}px`;
-                    }
-                });
+    document.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            const newX = e.clientX - startX;
+            const newY = e.clientY - startY;
+            imageContainer.style.left = `${newX}px`;
+            imageContainer.style.top = `${newY}px`;
+        }
+    });
 
-                document.addEventListener('mouseup', () => {
-                    isDragging = false;
-                });
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
 
-                // Resize image
-                let isResizing = false;
+    // Resize image while maintaining aspect ratio
+let isResizing = false;
+let startWidth, startHeight, aspectRatio;
 
-                resizeHandle.addEventListener('mousedown', (e) => {
-                    e.stopPropagation();
-                    isResizing = true;
-                });
+resizeHandle.addEventListener('mousedown', (e) => {
+    e.stopPropagation();
+    isResizing = true;
 
-                document.addEventListener('mousemove', (e) => {
-                    if (isResizing) {
-                        const width = e.clientX - imageContainer.offsetLeft;
-                        const height = e.clientY - imageContainer.offsetTop;
-                        imageContainer.style.width = `${width}px`;
-                        imageContainer.style.height = `${height}px`;
-                    }
-                });
+    // Capture the current state of the image container
+    startX = e.clientX;
+    startY = e.clientY;
+    startWidth = parseFloat(imageContainer.style.width);
+    startHeight = parseFloat(imageContainer.style.height);
 
-                document.addEventListener('mouseup', () => {
-                    isResizing = false;
-                });
-            });
+    // Calculate the aspect ratio based on the current dimensions
+    aspectRatio = startWidth / startHeight;
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (isResizing) {
+        // Calculate the change in mouse position
+        const deltaX = e.clientX - startX;
+        const deltaY = e.clientY - startY;
+
+        // Calculate new width and height while maintaining aspect ratio
+        let newWidth = startWidth + deltaX;
+        let newHeight = newWidth / aspectRatio;
+
+        // Apply new dimensions to the image
+        image.style.width = `${newWidth}px`;
+        image.style.height = `${newHeight}px`;
+
+        // Recalculate the total height of the container
+        const titleHeight = imageTitle.offsetHeight;
+        const padding = 16; // Total padding (0.5rem top + 0.5rem bottom = 16px)
+        const totalHeight = newHeight + titleHeight + padding;
+
+        // Apply the total height to the container
+        imageContainer.style.width = `${newWidth}px`;
+        imageContainer.style.height = `${totalHeight}px`;
+    }
+});
+
+document.addEventListener('mouseup', () => {
+    isResizing = false;
+});
+
+
+});
+    // Function to hide the image in the carousel
+    function hideCarouselImage(src) {
+        const carouselItems = document.querySelectorAll('.carousel-item');
+        carouselItems.forEach(item => {
+            if (item.getAttribute('data-src') === src) {
+                item.style.display = 'none';
+            }
         });
+    }
 
-
-
+    // Function to show the image in the carousel
+    function showCarouselImage(src) {
+        const carouselItems = document.querySelectorAll('.carousel-item');
+        carouselItems.forEach(item => {
+            if (item.getAttribute('data-src') === src) {
+                item.style.display = 'flex';
+            }
+        });
+    }
+});
 
 
 
