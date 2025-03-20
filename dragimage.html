@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Arranger</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        .a4-sheet {
+            width: 210mm;
+            height: 297mm;
+            background-color: white;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+            margin: 20px auto;
+       }
+
+        .image-container {
+    position: absolute;
+    cursor: grab;
+    border: 1px solid #ccc; /* Thin grey border */
+    padding: 4px; /* Optional: Add padding inside the border */
+    background-color: white; /* Optional: Add a background color */
+}
+        .image-container:active {
+            cursor: grabbing;
+        }
+        .resize-handle {
+            width: 10px;
+            height: 10px;
+            background: blue;
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            cursor: se-resize;
+        }
+        .remove-button {
+            position: absolute;
+            top: 0;
+            right: 0;
+            cursor: pointer;
+            background: red;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .carousel {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 200px; /* Adjust the width as needed */
+    overflow-y: auto; /* Enable vertical scrolling if the carousel is too tall */
+    background-color: white;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    z-index: 1000; /* Ensure the carousel stays above other content */
+    padding: 1rem;
+    display: flex;
+    flex-direction: column; /* Stack items vertically */
+    gap: 1rem; /* Add spacing between items */
+}
+
+.carousel-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border: 1px solid #e5e7eb; /* Optional: Add a border */
+    border-radius: 0.5rem; /* Optional: Add rounded corners */
+    background-color: #f9fafb; /* Optional: Add a background color */
+}
+
+.carousel-item img {
+    width: 100px; /* Adjust the image size as needed */
+    height: 100px;
+    object-fit: cover;
+    border-radius: 0.25rem; /* Optional: Add rounded corners to images */
+}
+
+.carousel-item p {
+    margin-top: 0.5rem;
+    text-align: center;
+    font-size: 0.875rem; /* Adjust the font size as needed */
+    color: #374151; /* Optional: Adjust the text color */
+}
+
+/* Adjust the main content to account for the fixed carousel */
+.container {
+    margin-left: 220px; /* Width of the carousel + some padding */
+}
+    </style>
+</head>
+<body class="bg-gray-100">
+
+        <!-- Carousel -->
+        <div class="carousel">
+        <div class="carousel-item" data-src="image1.png" data-title="Image 1">
+            <img src="image1.png" alt="Image 1">
+            <p>Image 1</p>
+        </div>
+        <div class="carousel-item" data-src="image2.png" data-title="Image 2">
+            <img src="image2.png" alt="Image 2">
+            <p>Image 2</p>
+        </div>
+            <!-- Add more images as needed -->
+        </div>
+        </div>
+
+    <!-- Main Content -->
+    <div class="container mx-auto p-4">
+        <!-- A4 Sheet Container -->
+        <div id="a4-sheets" class="space-y-4">
+            <div class="a4-sheet">
+                <!-- Images will be added here -->
+            </div>
+        </div>
+
+        <!-- Add New Page Button -->
+        <button id="add-page" class="fixed right-4 top-4 bg-blue-500 text-white px-4 py-2 rounded shadow">
+            Add New Page
+        </button>
+
+        <button id="export-sheets" class="fixed right-4 top-20 bg-green-500 text-white px-4 py-2 rounded shadow">
+    Export Sheets as Images
+</button>
+    </div>
+
+    <script>
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const carouselItems = document.querySelectorAll('.carousel-item');
+            const a4Sheets = document.getElementById('a4-sheets');
+            const addPageButton = document.getElementById('add-page');
+
+            let currentSheet = a4Sheets.firstElementChild;
+
+            // Add new page
+            addPageButton.addEventListener('click', () => {
+                const newSheet = document.createElement('div');
+                newSheet.className = 'a4-sheet';
+                a4Sheets.appendChild(newSheet);
+                currentSheet = newSheet;
+            });
+
+            // Drag and drop images from carousel to A4 sheet
+            carouselItems.forEach(item => {
+                item.addEventListener('dragstart', (e) => {
+                    const src = item.getAttribute('data-src');
+                    const title = item.getAttribute('data-title');
+                    e.dataTransfer.setData('text/plain', JSON.stringify({ src, title }));
+                });
+            });
+
+            currentSheet.addEventListener('dragover', (e) => {
+                e.preventDefault();
+            });
+
+            function hideCarouselImage(src) {
+    // Select all carousel items
+    const carouselItems = document.querySelectorAll('.carousel-item');
+
+    // Loop through each carousel item
+    carouselItems.forEach(item => {
+        // Check if the item's data-src matches the provided src
+        if (item.getAttribute('data-src') === src) {
+            // Hide the carousel item
+            item.style.display = 'none';
+        }
+    });
+}
+
+function showCarouselImage(src) {
+    // Select all carousel items
+    const carouselItems = document.querySelectorAll('.carousel-item');
+
+    // Loop through each carousel item
+    carouselItems.forEach(item => {
+        // Check if the item's data-src matches the provided src
+        if (item.getAttribute('data-src') === src) {
+            // Hide the carousel item
+            item.style.display = 'flex';
+        }
+    });
+}
+
+            currentSheet.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+    const { src, title } = data;
+
+    // Hide the image in the carousel
+    hideCarouselImage(src);
+
+    const imageContainer = document.createElement('div');
+    imageContainer.className = 'image-container';
+    imageContainer.style.left = `${e.offsetX}px`;
+    imageContainer.style.top = `${e.offsetY}px`;
+
+    const imageTitle = document.createElement('p');
+    imageTitle.textContent = title;
+    imageTitle.className = 'text-center font-bold mb-2';
+
+    const image = document.createElement('img');
+    image.src = src;
+    image.className = 'w-full h-full object-cover';
+
+    const resizeHandle = document.createElement('div');
+    resizeHandle.className = 'resize-handle';
+
+    const removeButton = document.createElement('div');
+    removeButton.className = 'remove-button';
+    removeButton.textContent = '×';
+    removeButton.addEventListener('click', () => {
+        // Show the image in the carousel
+        showCarouselImage(src);
+
+        // Remove the image from the A4 sheet
+        imageContainer.remove();
+    });
+
+    imageContainer.appendChild(imageTitle);
+    imageContainer.appendChild(image);
+    imageContainer.appendChild(resizeHandle);
+    imageContainer.appendChild(removeButton);
+    currentSheet.appendChild(imageContainer);
+
+                // Make image draggable
+                let isDragging = false;
+                let offsetX, offsetY;
+
+                imageContainer.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    offsetX = e.offsetX;
+                    offsetY = e.offsetY;
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (isDragging) {
+                        imageContainer.style.left = `${e.clientX - offsetX}px`;
+                        imageContainer.style.top = `${e.clientY - offsetY}px`;
+                    }
+                });
+
+                document.addEventListener('mouseup', () => {
+                    isDragging = false;
+                });
+
+                // Resize image
+                let isResizing = false;
+
+                resizeHandle.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                    isResizing = true;
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (isResizing) {
+                        const width = e.clientX - imageContainer.offsetLeft;
+                        const height = e.clientY - imageContainer.offsetTop;
+                        imageContainer.style.width = `${width}px`;
+                        imageContainer.style.height = `${height}px`;
+                    }
+                });
+
+                document.addEventListener('mouseup', () => {
+                    isResizing = false;
+                });
+            });
+        });
+
+
+
+
+
+
+    
+
+    document.getElementById('export-sheets').addEventListener('click', () => {
+    const sheets = document.querySelectorAll('.a4-sheet');
+    sheets.forEach((sheet, index) => {
+        html2canvas(sheet).then(canvas => {
+            // Convert the canvas to an image
+            const image = canvas.toDataURL('image/png');
+
+            // Create a download link
+            const link = document.createElement('a');
+            link.href = image;
+            link.download = `sheet-${index + 1}.png`; // Name the downloaded file
+            link.click();
+        });
+    });
+});
+    </script>
+</body>
+</html>
