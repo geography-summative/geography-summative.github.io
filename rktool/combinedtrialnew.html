@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Arranger</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+
+
+    <style>
+
+        @layer base {
+body{
+        line-height: initial !important;
+    }
+  img {
+    @apply inline-block;
+  }
+}
+
+
+        .a4-sheet {
+            width: 210mm;
+            height: 297mm;
+            background-color: #ffffff;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+            margin: 20px auto;
+            z-index: 1;
+       }
+
+        .image-container {
+    position: absolute;
+    cursor: grab;
+    border: 1px solid #ccc; /* Thin grey border */
+    padding: 4px; /* Optional: Add padding inside the border */
+    background-color: #ffffff; /* Optional: Add a background color */
+    border-radius: 0.5rem; /* Optional: Rounded corners */
+    z-index: 1000;
+
+}
+        .image-container:active {
+            cursor: grabbing;
+
+        }
+        .resize-handle {
+            width: 10px;
+            height: 10px;
+            background: blue;
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            cursor: se-resize;
+        }
+        .remove-button {
+            position: absolute;
+            top: 0;
+            right: 0;
+            cursor: pointer;
+            background: red;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .carousel {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 200px; /* Adjust the width as needed */
+    overflow-y: auto; /* Enable vertical scrolling if the carousel is too tall */
+    background-color: white;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    z-index: 1000; /* Ensure the carousel stays above other content */
+    padding: 1rem;
+    display: flex;
+    flex-direction: column; /* Stack items vertically */
+    gap: 1rem; /* Add spacing between items */
+}
+
+.carousel-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border: 1px solid #e5e7eb; /* Optional: Add a border */
+    border-radius: 0.5rem; /* Optional: Add rounded corners */
+    background-color: #f9fafb; /* Optional: Add a background color */
+}
+
+.carousel-item img {
+    width: 100px; /* Adjust the image size as needed */
+    height: 100px;
+    object-fit: cover;
+    border-radius: 0.25rem; /* Optional: Add rounded corners to images */
+}
+
+.carousel-item p {
+    margin-top: 0.5rem;
+    text-align: center;
+    font-size: 0.875rem; /* Adjust the font size as needed */
+    color: #374151; /* Optional: Adjust the text color */
+}
+
+/* Adjust the main content to account for the fixed carousel */
+.container {
+    margin-left: 220px; /* Width of the carousel + some padding */
+}
+    </style>
+</head>
+<body class="bg-gray-100 p-6">
+<div id="mainform"> 
+<div class="max-w-3xl mx-auto bg-white p-6 rounded shadow-md">
+        <h1 id="event-title" class="text-2xl font-bold text-center mb-4"></h1>
+        
+        <div class="relative w-full bg-gray-200 rounded-full h-2.5 mb-6">
+            <div id="progress-bar" class="bg-blue-500 h-2.5 rounded-full transition-all" style="width: 10%;"></div>
+        </div>
+        
+        <div id="ticket-container">
+            <button id="add-ticket" class="bg-green-500 text-white px-4 py-2 rounded">+ Add Ticket</button>
+            <table class="w-full border-collapse border border-gray-300 mt-4">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="border p-2">Date of Travel</th>
+                        <th class="border p-2">Cost</th>
+                        <th class="border p-2">Description</th>
+                        <th class="border p-2">Attachments</th>
+                        <th class="border p-2">Remove</th>
+                    </tr>
+                </thead>
+                <tbody id="ticket-table"></tbody>
+                <tfoot>
+                    <tr class="font-bold bg-gray-200">
+                        <td class="border p-2" colspan="5">Total GBP: <span id="total-gbp">£0.00</span>, Total EUR: <span id="total-eur">€0.00</span></td>
+                    </tr>
+                </tfoot>
+            </table>
+            <button id="next" onclick="sendTicketsToCanvas()" class="bg-blue-500 text-white px-4 py-2 rounded mt-4">Next</button>
+        </div>
+
+
+
+
+    <div id="bank-container" class="hidden">
+            <h2 class="text-xl font-bold mb-4">Payment Details</h2>
+            
+            <label class="block font-semibold mb-2">Preferred Currency:</label>
+            <div class="flex space-x-2 mb-4">
+                <button class="currency-btn px-4 py-2 rounded border" data-value="GBP">GBP</button>
+                <button class="currency-btn px-4 py-2 rounded border" data-value="EUR">EUR</button>
+            </div>
+            
+            <label class="block font-semibold">Address:</label>
+            <input type="text" id="address" class="w-full p-2 border rounded mb-4" required>
+            
+            <label class="block font-semibold mb-2">Bank Transfer Type:</label>
+            <div class="flex space-x-2 mb-4">
+                <button class="bank-btn px-4 py-2 rounded border" data-value="iban">IBAN</button>
+                <button class="bank-btn px-4 py-2 rounded border" data-value="sortcode">Sort Code & BIC</button>
+            </div>
+            
+            <div id="bank-details" class="mb-4"></div>
+            
+            <label class="block font-semibold mb-2">Signature Method:</label>
+    <div class="flex space-x-2 mb-4">
+        <button id="draw-btn" class="signature-btn px-4 py-2 rounded border" data-value="draw">Draw Signature</button>
+        <button id="upload-btn" class="signature-btn px-4 py-2 rounded border" data-value="upload">Upload Image</button>
+    </div>
+
+    <div id="signature-area">
+        <canvas id="signature-pad" class="border rounded w-full h-48 mb-4"></canvas>
+        <input type="file" id="signature-upload" class="w-full p-2 border rounded mb-4 hidden" accept="image/*">
+    </div>
+
+    <button id="confirm-bank" class="bg-blue-500 text-white px-4 py-2 rounded">Next</button>
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+    
+    <div id="ticket-modal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded shadow-lg w-3/4 max-w-2xl">
+            <h2 class="text-xl font-bold mb-4">Add New Ticket</h2>
+            <label>Date of Travel: <input type="date" id="ticket-date" class="w-full p-2 border rounded" required></label>
+            <label>Cost: <select id="ticket-currency" class="p-2 border rounded" required>
+                <option value="GBP">£</option>
+                <option value="EUR">€</option>
+            </select>
+            <input type="number" id="ticket-amount" class="w-20 p-2 border rounded" min="0" step="0.01" required></label>
+            <label>Description: <input type="text" id="ticket-description" class="w-full p-2 border rounded" required></label>
+            <label>Attachments: <input type="file" id="ticket-files" multiple accept="image/*" class="w-full p-2 border rounded" required></label>
+            <ul id="file-list" class="mt-2"></ul>
+            <div class="flex justify-end mt-4">
+                <button id="close-modal" class="bg-gray-500 text-white px-4 py-2 rounded mr-2">Cancel</button>
+                <button id="confirm-ticket" class="bg-blue-500 text-white px-4 py-2 rounded">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+
+
+
+
+<div id="imagearrange" class="hidden"> 
+        <!-- Carousel -->
+        <div class="carousel" id="carouseltarget">
+            <div class="carousel-item" data-src="image1.png" data-title="Image 1">
+                <img src="image1.png" alt="Image 1">
+                <p>Image 1</p>
+            </div>
+        <div class="carousel-item" data-src="image2.png" data-title="Image 2">
+            <img src="image2.png" alt="Image 2">
+            <p>Image 2</p>
+        </div>
+            <!-- Add more images as needed -->
+        </div>
+        
+
+    <!-- Main Content -->
+    <div class="container mx-auto p-4">
+        <!-- A4 Sheet Container -->
+        <div id="a4-sheets" class="space-y-4">
+            <div class="a4-sheet" id="firstpage">
+                <!-- Images will be added here -->
+            </div>
+        </div>
+
+        <!-- Add New Page Button -->
+        <button id="add-page" class="fixed right-4 top-4 bg-blue-500 text-white px-4 py-2 rounded shadow">
+            Add New Page
+        </button>
+
+        <button id="next-button" class="bg-green-500 text-white px-4 py-2 rounded shadow mb-4">Next Section</button>
+
+        <button id="export-sheets" class="fixed right-4 top-20 bg-green-500 text-white px-4 py-2 rounded shadow">
+    Export Sheets as Images
+</button>
+    </div>
+</div>
+   
+
+
+
+    <script src="imagearranger.js"></script>
+     <script src="ticketselector.js"></script>
+
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/1.5.3/signature_pad.min.js"></script>
+     <script src="bankdetails.js"></script>
+</body>
+</html>
