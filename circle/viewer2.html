@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OpenSeadragon with Scalable Purple Circle</title>
+    <script src="https://cdn.jsdelivr.net/npm/openseadragon@3.1/build/openseadragon/openseadragon.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        #viewer-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            border: 1px solid #ccc;
+        }
+        #viewer {
+            width: 100%;
+            height: 100%;
+        }
+        #canvas-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        .instructions {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="instructions">
+        <h2>Map with Scalable Purple Circle</h2>
+        <p>The purple circle will scale properly when zooming.</p>
+    </div>
+    
+    <div id="viewer-container">
+        <div id="viewer"></div>
+        <canvas id="canvas-overlay"></canvas>
+    </div>
+    
+    <script>
+        // Initialize OpenSeadragon viewer
+        var viewer = OpenSeadragon({
+            id: "viewer",
+            prefixUrl: "https://cdn.jsdelivr.net/npm/openseadragon@3.1/build/openseadragon/images/",
+            tileSources: {
+                type: 'image',
+                url: 'map.png',
+                crossOriginPolicy: 'Anonymous'
+            }
+        });
+        
+        // Get canvas and context
+        var canvas = document.getElementById('canvas-overlay');
+        var ctx = canvas.getContext('2d');
+        
+        // Store circle position in image coordinates
+        var circlePos = null;
+        var circleRadius = 20; // radius in image pixels
+        
+        // Function to resize canvas to match viewer
+        function resizeCanvas() {
+            var viewerSize = viewer.viewport.getContainerSize();
+            canvas.width = viewerSize.x;
+            canvas.height = viewerSize.y;
+            canvas.style.width = viewerSize.x + 'px';
+            canvas.style.height = viewerSize.y + 'px';
+            drawCircle();
+        }
+        
+        // Function to draw the circle
+        function drawCircle() {
+            if (!circlePos) return;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Convert image coordinates to viewport coordinates
+            var viewportPos = viewer.viewport.imageToViewportCoordinates(circlePos);
+            var screenPos = viewer.viewport.viewportToViewerElementCoordinates(viewportPos);
+            
+            // Calculate radius in screen pixels
+            var zoom = viewer.viewport.getZoom();
+            var screenRadius = circleRadius * zoom;
+            
+            // Draw the circle
+            ctx.beginPath();
+            ctx.arc(screenPos.x, screenPos.y, screenRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = 'rgba(128, 0, 128, 0.7)';
+            ctx.fill();
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+        
+        // Initialize when image loads
+        viewer.addHandler('open', function() {
+            // Get image dimensions
+            var imageWidth = viewer.world.getItemAt(0).getContentSize().x;
+            var imageHeight = viewer.world.getItemAt(0).getContentSize().y;
+            
+            // Generate random position
+            circlePos = new OpenSeadragon.Point(
+                Math.random() * imageWidth,
+                Math.random() * imageHeight
+            );
+            
+            console.log('Circle placed at image coordinates:', circlePos.x, circlePos.y);
+            
+            resizeCanvas();
+        });
+        
+        // Handle viewer changes
+        viewer.addHandler('animation', drawCircle);
+        viewer.addHandler('viewport-change', drawCircle);
+        viewer.addHandler('resize', resizeCanvas);
+    </script>
+</body>
+</html>
