@@ -1,7 +1,7 @@
 {
   "map name": "Central Square Historic Map",
   "map tags": ["historic", "center", "survey-1920"],
-  "mapthumbnailsrc": "https://mywebsite.com/assets/thumbs/map-1-thumb.jpg",
-  "mapsourcesrc": "https://mywebsite.com/assets/images/map-1-full.jpg",
+  "mapthumbnailsrc": "map-1-thumb.jpg",
+  "mapsourcesrc": "map-1-full.jpg",
   "description": "A scanned historic map of Central Square taken from the 1920 city survey. Use the Show map button to overlay the scanned map."
 }
