@@ -1,0 +1,7 @@
+{
+  "map name": "Downtown Block Survey",
+  "map tags": ["survey", "downtown", "aerial"],
+  "mapthumbnailsrc": "map-2-thumb.jpg",
+  "mapsourcesrc": "map-2-full.jpg",
+  "description": "A high-resolution aerial scan of the downtown block. This is georeferenced to the four corner coordinates provided."
+}
