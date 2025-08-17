@@ -1,7 +1,7 @@
 {
   "map name": "Downtown Block Survey",
   "map tags": ["survey", "downtown", "aerial"],
-  "mapthumbnailsrc": "criteria.png",
-  "mapsourcesrc": "map-2-full.png",
+  "mapthumbnailsrc": "https://geography-summative.github.io/kartenprobe/map-2/criteria.png",
+  "mapsourcesrc": "https://geography-summative.github.io/kartenprobe/map-2/map-2-full.png",
   "description": "A high-resolution aerial scan of the downtown block. This is georeferenced to the four corner coordinates provided."
 }
