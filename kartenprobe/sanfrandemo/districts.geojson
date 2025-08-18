@@ -1,0 +1,19 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Mission District" },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-122.423, 37.759], [-122.406, 37.759], [-122.406, 37.748], [-122.423, 37.748], [-122.423, 37.759]
+      ]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Chinatown" },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-122.409, 37.797], [-122.404, 37.797], [-122.404, 37.794], [-122.409, 37.794], [-122.409, 37.797]
+      ]] }
+    }
+  ]
+}
