@@ -1,0 +1,22 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "kind": "street" },
+      "geometry": { "type": "LineString", "coordinates": [[-122.42, 37.77], [-122.41, 37.77], [-122.40, 37.78]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "kind": "path" },
+      "geometry": { "type": "LineString", "coordinates": [[-122.416, 37.78], [-122.414, 37.781], [-122.412, 37.782]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "kind": "building" },
+      "geometry": { "type": "Polygon", "coordinates": [[
+        [-122.418, 37.779], [-122.417, 37.779], [-122.417, 37.778], [-122.418, 37.778], [-122.418, 37.779]
+      ]] }
+    }
+  ]
+}
