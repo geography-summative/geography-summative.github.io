@@ -1,0 +1,20 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "San Francisco" },
+      "geometry": { "type": "Point", "coordinates": [-122.4194, 37.7749] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Oakland" },
+      "geometry": { "type": "Point", "coordinates": [-122.2711, 37.8044] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Berkeley" },
+      "geometry": { "type": "Point", "coordinates": [-122.2730, 37.8715] }
+    }
+  ]
+}
