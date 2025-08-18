@@ -1,0 +1,15 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "SF MOMA", "type": "arts" },
+      "geometry": { "type": "Point", "coordinates": [-122.4009, 37.7857] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Main Library", "type": "library" },
+      "geometry": { "type": "Point", "coordinates": [-122.4156, 37.7793] }
+    }
+  ]
+}
